@@ -1,7 +1,9 @@
+use builder::Builder;
 use configurations::{ConfigError, Configurable, Configuration};
 use hashing::{strategy::Hashing, HashManager};
 use storage::Storage;
 
+mod builder;
 mod configurations;
 mod hashing;
 mod storage;
@@ -23,9 +25,13 @@ pub struct BloomFilter {
 }
 
 impl BloomFilter {
-    pub fn from(
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+
+    fn try_from(
         max_size: usize,
-        max_tolerance: Option<f32>,
+        max_tolerance: f32,
         strategy: Option<Box<dyn Hashing>>,
     ) -> Result<Self, BloomFilterError> {
         let configuration = Configuration::try_from(max_tolerance, max_size)
@@ -44,7 +50,7 @@ impl BloomFilter {
             .map_err(String::from)
             .map_err(BloomFilterError::Hashing)?;
 
-        let storage = Storage::from(configuration.get_total_bits())
+        let storage = Storage::try_from(configuration.get_total_bits())
             .map_err(String::from)
             .map_err(BloomFilterError::Storage)?;
 
@@ -56,12 +62,12 @@ impl BloomFilter {
     }
 
     pub fn insert(&self, entry: String) {
-        let positions = self.manager.compute(&entry);
+        let positions = self.manager.hash(&entry);
 
         let is_new_entry = positions
             .into_iter()
             .map(|idx| self.storage.write_bit_at(idx))
-            .fold(true, |acc, x| acc && x);
+            .all(|x| x);
 
         if is_new_entry {
             self.configuration.increase_unique_entry_count();
@@ -69,7 +75,7 @@ impl BloomFilter {
     }
 
     pub fn contains(&self, entry: &str) -> bool {
-        let positions = self.manager.compute(&entry);
+        let positions = self.manager.hash(&entry);
 
         positions
             .into_iter()

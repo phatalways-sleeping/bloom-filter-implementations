@@ -28,7 +28,7 @@ pub(crate) struct Configuration {
 
 impl Configuration {
     pub(crate) fn try_from(
-        max_tolerance: Option<SupportedFloatingPointType>,
+        max_tolerance: SupportedFloatingPointType,
         max_size: usize,
     ) -> Result<Self, ConfigError> {
         let (capacity, tolerance) = match (
@@ -61,7 +61,7 @@ impl Configurable for Configuration {
     fn get_max_tolerance(&self) -> SupportedFloatingPointType {
         self.tolerance.get_maximum_tolerance()
     }
-    
+
     fn get_total_bits(&self) -> usize {
         *self.storage_bits
     }

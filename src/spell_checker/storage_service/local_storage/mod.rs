@@ -4,17 +4,23 @@ use std::{
     path::Path,
 };
 
+pub use builder::Builder;
+
 use super::{StorageService, StorageServiceError};
+
+mod builder;
 
 pub struct LocalStorage {
     path: String,
 }
 
-impl TryFrom<&str> for LocalStorage {
-    type Error = StorageServiceError;
+impl LocalStorage {
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let path = Path::new(value);
+    fn try_from(storage_loc: String) -> Result<Self, StorageServiceError> {
+        let path = Path::new(&storage_loc);
 
         if !path.exists() {
             return Err(StorageServiceError::NotFound(String::from(
@@ -42,9 +48,7 @@ impl TryFrom<&str> for LocalStorage {
             _ => {}
         }
 
-        Ok(Self {
-            path: value.to_string(),
-        })
+        Ok(Self { path: storage_loc })
     }
 }
 
@@ -54,13 +58,12 @@ impl StorageService for LocalStorage {
             StorageServiceError::NotFound(format!("Cannot open file at {}", self.path))
         })?;
 
-        let mut lines_buffer = BufReader::new(file).lines();
+        let lines_buffer = BufReader::new(file).lines();
 
-        while let Some(line) = lines_buffer.next() {
-            if let Ok(word) = line {
-                if word == entry {
-                    return Ok(true);
-                }
+        for line in lines_buffer {
+            let Ok(word) = line else { continue };
+            if word == entry {
+                return Ok(true);
             }
         }
 
@@ -69,7 +72,6 @@ impl StorageService for LocalStorage {
 
     fn save(&self, entry: String) -> Result<(), StorageServiceError> {
         let mut file = OpenOptions::new()
-            .write(true)
             .append(true)
             .open(&self.path)
             .map_err(|_| {
@@ -83,7 +85,6 @@ impl StorageService for LocalStorage {
 
     fn save_bulk(&self, entries: Vec<String>) -> Result<(), StorageServiceError> {
         let mut file = OpenOptions::new()
-            .write(true)
             .append(true)
             .open(&self.path)
             .map_err(|_| {
@@ -106,11 +107,11 @@ impl StorageService for LocalStorage {
             StorageServiceError::NotFound(format!("Cannot open file at {}", self.path))
         })?;
 
-        let mut lines_buffer = BufReader::new(file).lines();
+        let lines_buffer = BufReader::new(file).lines();
 
         let mut words: Vec<String> = vec![];
 
-        while let Some(line) = lines_buffer.next() {
+        for line in lines_buffer {
             match line {
                 Ok(word) => words.push(word),
                 Err(_) => {

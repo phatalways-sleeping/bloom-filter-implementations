@@ -25,7 +25,7 @@ impl TryFrom<usize> for Capacity {
             return Err("Not enough capacity for storage");
         }
 
-        if value <= 0 {
+        if value == 0 {
             return Err("Storage cannot have capacity of 0");
         }
 

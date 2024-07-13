@@ -1,16 +1,14 @@
-use std::mem::size_of;
-
 use crate::bloom_filters::{SmallestIntType, SupportedFloatingPointType};
 
 pub(super) fn read_bit_coordinates(idx: usize) -> (usize, usize) {
-    let element = idx / (size_of::<SmallestIntType>() * 8);
-    let offset = idx % (size_of::<SmallestIntType>() * 8);
-    return (element, offset);
+    let element = idx / (SmallestIntType::BITS as usize);
+    let offset = idx % (SmallestIntType::BITS as usize);
+    (element, offset)
 }
 
 pub(super) fn calculate_storage_capacity_based_on_total_bits(total_bits: usize) -> usize {
     ((total_bits as SupportedFloatingPointType)
-        / ((size_of::<SmallestIntType>() * 8) as SupportedFloatingPointType))
+        / (SmallestIntType::BITS as SupportedFloatingPointType))
         .ceil() as usize
 }
 

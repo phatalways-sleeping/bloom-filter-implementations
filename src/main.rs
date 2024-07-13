@@ -4,9 +4,12 @@ use spell_checker_bloom_filters::{
 };
 
 fn main() {
-    let buffer = BloomFilter::from(10_000_000, Some(0.01), None).unwrap();
+    let buffer = BloomFilter::builder().build().unwrap();
 
-    let database = LocalStorage::try_from("database.txt").unwrap();
+    let database = LocalStorage::builder()
+        .with_storage_location("database.txt")
+        .build()
+        .unwrap();
 
     let spell_checker = SpellChecker::builder()
         .with_buffer(buffer)
@@ -14,7 +17,15 @@ fn main() {
         .build()
         .unwrap();
 
-    let words = vec!["hot", "cold", "helo", "catastrophic", "coding", "challenges", "imadethis"];
+    let words = vec![
+        "hot",
+        "cold",
+        "helo",
+        "catastrophic",
+        "coding",
+        "challenges",
+        "imadethis",
+    ];
 
     for word in words {
         let result = spell_checker.check_spelling_of(word).unwrap();

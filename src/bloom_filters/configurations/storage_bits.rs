@@ -36,12 +36,14 @@ impl StorageBits {
 
 #[cfg(test)]
 mod test {
-    use crate::bloom_filters::configurations::{capacity::Capacity, storage_bits::StorageBits, tolerance::Tolerance};
+    use crate::bloom_filters::configurations::{
+        capacity::Capacity, storage_bits::StorageBits, tolerance::Tolerance,
+    };
 
     #[test]
     fn should_return_ok_when_bits_needed_not_maximum_allowed() {
         let capacity = Capacity::try_from(1_000_000).unwrap();
-        let tolerance = Tolerance::try_from(Some(0.01)).unwrap();
+        let tolerance = Tolerance::try_from(0.01).unwrap();
         let maybe_storage_bits = StorageBits::try_from(&capacity, &tolerance);
         assert!(maybe_storage_bits.is_ok());
     }
