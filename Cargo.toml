@@ -1,0 +1,8 @@
+[package]
+name = "spell-checker-bloom-filters"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fasthash = "0.4"
+fnv = "1.0.3"
